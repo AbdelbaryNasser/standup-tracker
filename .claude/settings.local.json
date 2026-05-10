@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-Content \"C:\\\\Users\\\\hp\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Tamm-standup-tracker\\\\73c9ed6d-ab83-42ea-b209-d453797d4bed\\\\tasks\\\\b29mosj84.output\" -Wait)",
+      "Bash(Select-String -Pattern \"Success|error|Error|failed|Failed|Done|done|ready|Ready|created|Created|npm warn|warning\")",
+      "PowerShell(Get-ChildItem C:\\\\Tamm\\\\standup-tracker -Recurse -Depth 3 | Where-Object { !$_.PSIsContainer } | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Tamm\\\\standup-tracker\\\\\", \"\"\\) } | Where-Object { $_ -notmatch \"node_modules|\\\\.next\" })",
+      "PowerShell(Get-ChildItem C:\\\\Tamm\\\\standup-tracker\\\\src -Recurse | Where-Object { !$_.PSIsContainer } | ForEach-Object { $_.FullName.Replace\\(\"C:\\\\Tamm\\\\standup-tracker\\\\src\\\\\", \"\"\\) })",
+      "Bash(Get-Content \"C:\\\\Users\\\\hp\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Tamm-standup-tracker\\\\73c9ed6d-ab83-42ea-b209-d453797d4bed\\\\tasks\\\\blb4l5pkl.output\" -Wait)",
+      "Bash(Select-String -Pattern \"ready|Ready|Local|error|Error|failed|Failed|warn|compil\")",
+      "Bash(npm run *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Tamm\\\\standup-tracker\\\\src\" -Recurse -File)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(xargs grep -l \"is_manager\\\\|is_seen\\\\|viewed\\\\|seen\")"
+    ]
+  }
+}
