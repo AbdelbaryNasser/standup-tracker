@@ -18,9 +18,11 @@ export default async function StandupPage() {
   // Fetch current user profile
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name')
+    .select('full_name, role')
     .eq('id', user.id)
     .single();
+
+  if (profile?.role === 'manager') redirect('/manager');
 
   // Fetch today's standup
   const { data: todayStandup } = await supabase
@@ -95,6 +97,7 @@ export default async function StandupPage() {
           <StandupCard
             standup={todayStandup as StandupWithProfile}
             showProfile={false}
+            canEdit={true}
             currentUserId={user.id}
             currentUserName={profile?.full_name ?? ''}
             initialComments={todayComments}

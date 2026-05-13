@@ -69,6 +69,49 @@ export async function confirmStandup(
   return { success: true };
 }
 
+export async function updateStandup(standupId: string, formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Not authenticated' };
+
+  const yesterday = formData.get('yesterday') as string;
+  const blockers = (formData.get('blockers') as string) || null;
+  const todayItems: string[] = [];
+
+  for (const [key, value] of formData.entries()) {
+    if (key.startsWith('today_item_') && (value as string).trim()) {
+      todayItems.push((value as string).trim());
+    }
+  }
+
+  if (!yesterday.trim()) return { error: 'Yesterday field is required' };
+  if (todayItems.length === 0) return { error: 'Add at least one item for today' };
+
+  const { data: existing } = await supabase
+    .from('standups')
+    .select('user_id')
+    .eq('id', standupId)
+    .single();
+
+  if (!existing || existing.user_id !== user.id) return { error: 'Not authorized' };
+
+  const { error } = await supabase
+    .from('standups')
+    .update({
+      yesterday: yesterday.trim(),
+      today_items: todayItems,
+      blockers: blockers?.trim() || null,
+    })
+    .eq('id', standupId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath('/standup');
+  revalidatePath('/manager');
+  revalidatePath('/history');
+  return { success: true };
+}
+
 export async function setMemberActive(memberId: string, isActive: boolean) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

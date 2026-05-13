@@ -28,13 +28,15 @@ export async function Navbar() {
           </Link>
 
           <nav className="flex items-center gap-1">
-            <Link
-              href="/standup"
-              className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
-            >
-              <CheckSquare className="h-4 w-4" />
-              My Standup
-            </Link>
+            {!isManager && (
+              <Link
+                href="/standup"
+                className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
+              >
+                <CheckSquare className="h-4 w-4" />
+                My Standup
+              </Link>
+            )}
             <Link
               href="/history"
               className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
