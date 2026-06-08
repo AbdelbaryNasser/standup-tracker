@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { StandupWithProfile, CommentWithProfile, Profile, StandupViewWithProfile } from '@/lib/types';
 import { formatDate, getTodayDate, getYesterdayDate } from '@/lib/utils';
 import { Users } from 'lucide-react';
+import { NudgeButton } from '@/components/dashboard/NudgeButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,6 +100,7 @@ export default async function ManagerPage() {
           <h1 className="text-2xl font-bold text-white">Team Dashboard</h1>
           <p className="mt-1 text-sm text-zinc-500">{formatDate(today)}</p>
         </div>
+        <NudgeButton missingCount={activeProfiles.filter(p => p.role === 'member' && !submittedIds.has(p.id)).length} />
       </div>
 
       {/* Stats + roster */}

@@ -10,17 +10,20 @@ export async function submitStandup(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Not authenticated' };
 
-  const yesterday = formData.get('yesterday') as string;
   const blockers = (formData.get('blockers') as string) || null;
+  const yesterdayItems: string[] = [];
   const todayItems: string[] = [];
 
   for (const [key, value] of formData.entries()) {
+    if (key.startsWith('yesterday_item_') && (value as string).trim()) {
+      yesterdayItems.push((value as string).trim());
+    }
     if (key.startsWith('today_item_') && (value as string).trim()) {
       todayItems.push((value as string).trim());
     }
   }
 
-  if (!yesterday.trim()) return { error: 'Yesterday field is required' };
+  if (yesterdayItems.length === 0) return { error: 'Add at least one item for yesterday' };
   if (todayItems.length === 0) return { error: 'Add at least one item for today' };
 
   const { data: standup, error } = await supabase
@@ -28,7 +31,7 @@ export async function submitStandup(formData: FormData) {
     .insert({
       user_id: user.id,
       date: getTodayDate(),
-      yesterday: yesterday.trim(),
+      yesterday: yesterdayItems.join('\n'),
       today_items: todayItems,
       blockers: blockers?.trim() || null,
     })
@@ -74,17 +77,20 @@ export async function updateStandup(standupId: string, formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Not authenticated' };
 
-  const yesterday = formData.get('yesterday') as string;
   const blockers = (formData.get('blockers') as string) || null;
+  const yesterdayItems: string[] = [];
   const todayItems: string[] = [];
 
   for (const [key, value] of formData.entries()) {
+    if (key.startsWith('yesterday_item_') && (value as string).trim()) {
+      yesterdayItems.push((value as string).trim());
+    }
     if (key.startsWith('today_item_') && (value as string).trim()) {
       todayItems.push((value as string).trim());
     }
   }
 
-  if (!yesterday.trim()) return { error: 'Yesterday field is required' };
+  if (yesterdayItems.length === 0) return { error: 'Add at least one item for yesterday' };
   if (todayItems.length === 0) return { error: 'Add at least one item for today' };
 
   const { data: existing } = await supabase
@@ -98,7 +104,7 @@ export async function updateStandup(standupId: string, formData: FormData) {
   const { error } = await supabase
     .from('standups')
     .update({
-      yesterday: yesterday.trim(),
+      yesterday: yesterdayItems.join('\n'),
       today_items: todayItems,
       blockers: blockers?.trim() || null,
     })

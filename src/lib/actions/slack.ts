@@ -1,5 +1,6 @@
 'use server';
 
+import { createClient } from '@/lib/supabase/server';
 import { formatDate } from '@/lib/utils';
 import { StandupWithProfile } from '@/lib/types';
 
@@ -163,4 +164,51 @@ export async function postDailySummaryToSlack(
   blocks.push({ type: 'divider' });
 
   return postToSlack({ blocks });
+}
+
+export async function nudgeMissingMembers(): Promise<{ error?: string; success?: boolean; count?: number }> {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Unauthorized' };
+
+  const { data: manager } = await supabase
+    .from('profiles')
+    .select('role, full_name')
+    .eq('id', user.id)
+    .single();
+
+  if (manager?.role !== 'manager') return { error: 'Unauthorized' };
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const [{ data: allMembers }, { data: todayStandups }] = await Promise.all([
+    supabase.from('profiles').select('id, full_name, slack_user_id').eq('role', 'member').eq('is_active', true),
+    supabase.from('standups').select('user_id').eq('date', today),
+  ]);
+
+  const submittedIds = new Set((todayStandups ?? []).map((s) => s.user_id));
+  const missing = (allMembers ?? []).filter((m) => !submittedIds.has(m.id));
+
+  if (missing.length === 0) return { success: true, count: 0 };
+
+  const mentions = missing
+    .map((m) => m.slack_user_id ? `<@${m.slack_user_id}>` : `*${m.full_name}*`)
+    .join(', ');
+
+  const managerName = manager.full_name.split(' ')[0];
+
+  const blocks = [
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `👋 Hey ${mentions} — ${managerName} is waiting on your standup! Please submit when you get a chance.`,
+      },
+    },
+  ];
+
+  const result = await postToSlack({ blocks });
+  if (result.error) return result;
+  return { success: true, count: missing.length };
 }
