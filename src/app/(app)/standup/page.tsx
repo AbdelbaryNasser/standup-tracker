@@ -109,7 +109,9 @@ export default async function StandupPage() {
           <h2 className="text-base font-semibold text-zinc-100 mb-6">
             Submit today's standup
           </h2>
-          <StandupForm />
+          <StandupForm
+            defaultYesterday={yesterdayStandup?.today_items}
+          />
         </section>
       )}
     </div>

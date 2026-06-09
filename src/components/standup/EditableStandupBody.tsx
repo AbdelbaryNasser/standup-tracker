@@ -16,11 +16,13 @@ interface Props {
 
 export function EditableStandupBody({ standup, confirmations }: Props) {
   const [isEditing, setIsEditing] = useState(false);
+  const [editYesterdayItems, setEditYesterdayItems] = useState<string[]>([]);
   const [editItems, setEditItems] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function startEditing() {
+    setEditYesterdayItems(standup.yesterday.split('\n').filter(Boolean));
     setEditItems([...standup.today_items]);
     setError(null);
     setIsEditing(true);
@@ -28,6 +30,7 @@ export function EditableStandupBody({ standup, confirmations }: Props) {
 
   function cancelEditing() {
     setIsEditing(false);
+    setEditYesterdayItems([]);
     setEditItems([]);
     setError(null);
   }
@@ -59,12 +62,47 @@ export function EditableStandupBody({ standup, confirmations }: Props) {
           <label className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
             Yesterday
           </label>
-          <Textarea
-            name="yesterday"
-            defaultValue={standup.yesterday}
-            required
-            className="min-h-[80px]"
-          />
+          <div className="space-y-2">
+            {editYesterdayItems.map((item, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-xs font-medium text-zinc-400 border border-zinc-700">
+                  {i + 1}
+                </span>
+                <Input
+                  name={`yesterday_item_${i}`}
+                  value={item}
+                  onChange={(e) =>
+                    setEditYesterdayItems((prev) =>
+                      prev.map((t, idx) => (idx === i ? e.target.value : t))
+                    )
+                  }
+                  placeholder={`Task ${i + 1}`}
+                  required={i === 0}
+                />
+                {editYesterdayItems.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setEditYesterdayItems((prev) => prev.filter((_, idx) => idx !== i))
+                    }
+                    className="shrink-0 rounded-md p-1 text-zinc-600 hover:bg-zinc-800 hover:text-zinc-300 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setEditYesterdayItems((prev) => [...prev, ''])}
+            className="mt-1 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+          >
+            <Plus className="h-4 w-4" />
+            Add item
+          </Button>
         </div>
 
         <div className="space-y-2">

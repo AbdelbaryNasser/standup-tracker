@@ -5,12 +5,21 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { submitStandup } from '@/lib/actions/standup';
-import { Plus, X, Send } from 'lucide-react';
+import { Plus, X, Send, AlertTriangle } from 'lucide-react';
 
-export function StandupForm() {
+export function StandupForm({ defaultYesterday }: { defaultYesterday?: string[] }) {
+  const [yesterdayItems, setYesterdayItems] = useState<string[]>(
+    defaultYesterday && defaultYesterday.length > 0 ? defaultYesterday : ['']
+  );
   const [todayItems, setTodayItems] = useState(['']);
+  const [hasBlocker, setHasBlocker] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const addYesterdayItem = () => setYesterdayItems((prev) => [...prev, '']);
+  const removeYesterdayItem = (i: number) => setYesterdayItems((prev) => prev.filter((_, idx) => idx !== i));
+  const updateYesterdayItem = (i: number, value: string) =>
+    setYesterdayItems((prev) => prev.map((item, idx) => (idx === i ? value : item)));
 
   const addItem = () => setTodayItems((prev) => [...prev, '']);
   const removeItem = (i: number) => setTodayItems((prev) => prev.filter((_, idx) => idx !== i));
@@ -39,12 +48,41 @@ export function StandupForm() {
         <label className="block text-sm font-medium text-zinc-300">
           What did you work on yesterday?
         </label>
-        <Textarea
-          name="yesterday"
-          placeholder="Describe what you accomplished..."
-          className="min-h-[100px]"
-          required
-        />
+        <div className="space-y-2">
+          {yesterdayItems.map((item, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-xs font-medium text-zinc-400 border border-zinc-700">
+                {i + 1}
+              </span>
+              <Input
+                name={`yesterday_item_${i}`}
+                value={item}
+                onChange={(e) => updateYesterdayItem(i, e.target.value)}
+                placeholder={`Task ${i + 1}`}
+                required={i === 0}
+              />
+              {yesterdayItems.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeYesterdayItem(i)}
+                  className="shrink-0 rounded-md p-1 text-zinc-600 hover:bg-zinc-800 hover:text-zinc-300 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={addYesterdayItem}
+          className="mt-1 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+        >
+          <Plus className="h-4 w-4" />
+          Add item
+        </Button>
       </div>
 
       <div className="space-y-2">
@@ -87,15 +125,36 @@ export function StandupForm() {
         </Button>
       </div>
 
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-zinc-300">
-          Any blockers?{' '}
-          <span className="font-normal text-zinc-500">(optional)</span>
-        </label>
-        <Textarea
-          name="blockers"
-          placeholder="Describe any blockers or impediments..."
-        />
+      <div className="space-y-3">
+        <button
+          type="button"
+          onClick={() => setHasBlocker((v) => !v)}
+          className={`flex items-center gap-3 w-full rounded-xl border px-4 py-3 text-sm font-medium transition-colors ${
+            hasBlocker
+              ? 'border-orange-700/60 bg-orange-950/40 text-orange-300'
+              : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-700 hover:text-zinc-300'
+          }`}
+        >
+          <AlertTriangle className={`h-4 w-4 shrink-0 ${hasBlocker ? 'text-orange-400' : 'text-zinc-600'}`} />
+          <span className="flex-1 text-left">I have a blocker</span>
+          {/* Toggle pill */}
+          <span className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ${hasBlocker ? 'bg-orange-500' : 'bg-zinc-700'}`}>
+            <span className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${hasBlocker ? 'translate-x-4' : 'translate-x-0'}`} />
+          </span>
+        </button>
+
+        {hasBlocker && (
+          <Textarea
+            name="blockers"
+            placeholder="Describe your blocker..."
+            className="min-h-[80px]"
+            autoFocus
+            required
+          />
+        )}
+
+        {/* Hidden field so the server action always receives the key */}
+        {!hasBlocker && <input type="hidden" name="blockers" value="" />}
       </div>
 
       <Button type="submit" loading={isPending} size="lg" className="w-full sm:w-auto">
