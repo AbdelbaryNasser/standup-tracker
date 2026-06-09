@@ -10,7 +10,28 @@
       "Bash(npm run *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Tamm\\\\standup-tracker\\\\src\" -Recurse -File)",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(xargs grep -l \"is_manager\\\\|is_seen\\\\|viewed\\\\|seen\")"
+      "Bash(xargs grep -l \"is_manager\\\\|is_seen\\\\|viewed\\\\|seen\")",
+      "Bash(git push *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(npx tsc *)",
+      "Bash(gh pr *)",
+      "PowerShell(winget install *)",
+      "PowerShell(gh *)",
+      "PowerShell(gh auth *)",
+      "PowerShell(gh pr *)",
+      "Bash(git pull *)",
+      "Bash(git merge *)",
+      "Bash(npx vercel *)",
+      "Bash(vercel ls *)",
+      "PowerShell(git add *)",
+      "PowerShell(git push *)",
+      "PowerShell(vercel *)",
+      "PowerShell(vercel ls *)",
+      "PowerShell(app *)",
+      "Bash(git -C C:/Tamm/standup-tracker status)",
+      "Bash(git -C C:/Tamm/standup-tracker diff)",
+      "Bash(git *)"
     ]
   }
 }
