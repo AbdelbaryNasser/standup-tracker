@@ -100,7 +100,11 @@ export default async function ManagerPage() {
           <h1 className="text-2xl font-bold text-white">Team Dashboard</h1>
           <p className="mt-1 text-sm text-zinc-500">{formatDate(today)}</p>
         </div>
-        <NudgeButton missingCount={activeProfiles.filter(p => p.role === 'member' && !submittedIds.has(p.id)).length} />
+        <NudgeButton
+          missingMembers={activeProfiles
+            .filter((p) => p.role === 'member' && !submittedIds.has(p.id))
+            .map((p) => ({ id: p.id, full_name: p.full_name, slack_user_id: p.slack_user_id }))}
+        />
       </div>
 
       {/* Stats + roster */}

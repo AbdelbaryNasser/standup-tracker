@@ -166,7 +166,9 @@ export async function postDailySummaryToSlack(
   return postToSlack({ blocks });
 }
 
-export async function nudgeMissingMembers(): Promise<{ error?: string; success?: boolean; count?: number }> {
+export async function nudgeMissingMembers(
+  specificUserIds?: string[]
+): Promise<{ error?: string; success?: boolean; count?: number }> {
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -180,15 +182,24 @@ export async function nudgeMissingMembers(): Promise<{ error?: string; success?:
 
   if (manager?.role !== 'manager') return { error: 'Unauthorized' };
 
-  const today = new Date().toISOString().split('T')[0];
+  let missing: Array<{ id: string; full_name: string; slack_user_id: string | null }>;
 
-  const [{ data: allMembers }, { data: todayStandups }] = await Promise.all([
-    supabase.from('profiles').select('id, full_name, slack_user_id').eq('role', 'member').eq('is_active', true),
-    supabase.from('standups').select('user_id').eq('date', today),
-  ]);
-
-  const submittedIds = new Set((todayStandups ?? []).map((s) => s.user_id));
-  const missing = (allMembers ?? []).filter((m) => !submittedIds.has(m.id));
+  if (specificUserIds && specificUserIds.length > 0) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, full_name, slack_user_id')
+      .in('id', specificUserIds)
+      .eq('is_active', true);
+    missing = data ?? [];
+  } else {
+    const today = new Date().toISOString().split('T')[0];
+    const [{ data: allMembers }, { data: todayStandups }] = await Promise.all([
+      supabase.from('profiles').select('id, full_name, slack_user_id').eq('role', 'member').eq('is_active', true),
+      supabase.from('standups').select('user_id').eq('date', today),
+    ]);
+    const submittedIds = new Set((todayStandups ?? []).map((s) => s.user_id));
+    missing = (allMembers ?? []).filter((m) => !submittedIds.has(m.id));
+  }
 
   if (missing.length === 0) return { success: true, count: 0 };
 
